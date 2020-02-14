@@ -1,9 +1,12 @@
-https://en.wikipedia.org/wiki/Atlantic_herring
+# 苏格兰渔业
+[Fishing industry in Scotland](https://en.wikipedia.org/wiki/Fishing_industry_in_Scotland)
+
 # 鲭鱼（mackerel）
 https://en.wikipedia.org/wiki/Mackerel
 
 # 鲱鱼 (herring)
 - https://en.wikipedia.org/wiki/Herring
+- https://en.wikipedia.org/wiki/Atlantic_herring
 
 > If the egg layers are too thick they suffer from oxygen depletion and often die, entangled in a maze of mucus. They need substantial water microturbulence, generally provided by wave action or coastal currents. Survival is highest in crevices and behind solid structures, because predators feast on openly exposed eggs. The individual eggs are 1 to 1.4 mm (0.039 to 0.055 in) in diameter, depending on the size of the parent fish and also on the local race. Incubation time is about 40 days at 3 °C (37 °F), 15 days at 7 °C (45 °F), or 11 days at 10 °C (50 °F). Eggs die at temperatures above 19 °C (66 °F).
 
