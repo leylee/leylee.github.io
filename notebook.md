@@ -1,5 +1,5 @@
-文章地址
-https://github.com/leylee/leylee.github.io/blob/master/notebook.md
+[文章地址](https://github.com/leylee/leylee.github.io/blob/master/notebook.md)
+[题目翻译地址](https://github.com/leylee/leylee.github.io/blob/master/A.md)
 
 # 苏格兰渔业
 - [Fishing industry in Scotland](https://en.wikipedia.org/wiki/Fishing_industry_in_Scotland)
@@ -10,6 +10,7 @@ https://github.com/leylee/leylee.github.io/blob/master/notebook.md
 # 鲭鱼（Atlantic mackerel / Scomber scombrus）
 - https://en.wikipedia.org/wiki/Mackerel
 - https://en.wikipedia.org/wiki/Atlantic_mackerel
+
 > Its preferred water temperature is above 8 °C (46 °F), but Atlantic mackerel are common in waters as cold as 7 °C (45 °F) and have been found, albeit rarely, in 4.5 °C (40.1 °F) waters.
 
 # 鲱鱼 (Atlantic herring / Clupea harengus)
