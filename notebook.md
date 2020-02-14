@@ -1,8 +1,11 @@
 # 苏格兰渔业
-[Fishing industry in Scotland](https://en.wikipedia.org/wiki/Fishing_industry_in_Scotland)
+- [Fishing industry in Scotland](https://en.wikipedia.org/wiki/Fishing_industry_in_Scotland)
+- [苏格兰政府关于渔业鱼类的介绍](https://www2.gov.scot/Topics/marine/Sea-Fisheries/sustainfish/fishcapture/FishingGears/pelagic)
+> Mid-water or pelagic trawls are towed at the appropriate level in the water column to intercept shoaling fish such as mackerel (**Scomber scombrus**), herring (**Clupea harengus**) or sprats. 
+
 
 # 鲭鱼（mackerel）
-https://en.wikipedia.org/wiki/Mackerel
+- https://en.wikipedia.org/wiki/Mackerel
 
 # 鲱鱼 (herring)
 - https://en.wikipedia.org/wiki/Herring
