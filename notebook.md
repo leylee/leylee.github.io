@@ -1,13 +1,18 @@
+文章地址
+https://github.com/leylee/leylee.github.io/blob/master/notebook.md
+
 # 苏格兰渔业
 - [Fishing industry in Scotland](https://en.wikipedia.org/wiki/Fishing_industry_in_Scotland)
 - [苏格兰政府关于渔业鱼类的介绍](https://www2.gov.scot/Topics/marine/Sea-Fisheries/sustainfish/fishcapture/FishingGears/pelagic)
 > Mid-water or pelagic trawls are towed at the appropriate level in the water column to intercept shoaling fish such as mackerel (**Scomber scombrus**), herring (**Clupea harengus**) or sprats. 
 
 
-# 鲭鱼（mackerel）
+# 鲭鱼（Atlantic mackerel / Scomber scombrus）
 - https://en.wikipedia.org/wiki/Mackerel
+- https://en.wikipedia.org/wiki/Atlantic_mackerel
+> Its preferred water temperature is above 8 °C (46 °F), but Atlantic mackerel are common in waters as cold as 7 °C (45 °F) and have been found, albeit rarely, in 4.5 °C (40.1 °F) waters.
 
-# 鲱鱼 (herring)
+# 鲱鱼 (Atlantic herring / Clupea harengus)
 - https://en.wikipedia.org/wiki/Herring
 - https://en.wikipedia.org/wiki/Atlantic_herring
 
