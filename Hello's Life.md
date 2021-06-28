@@ -564,7 +564,7 @@ objdump -d -r hello.o > hello_o.asm
   26:	e8 00 00 00 00       	callq  2b <main+0x2b>
 ```
 
-在 .s 文件中, call 指令后直接跟着函数名称, 而在反汇编程序中, call 的目标地址是当前下一条指令的地址. 例如 hello.s 中的 `call exit@plt` 对应反汇编代码中的 `call 2b`。 这是因为由于我们调用的函数是来自外部的函数， 所以 hello.o 和标准库链接 时需要重定位计算地址, 我们现在无法知道最终运行时的地址, 所以用 0 来填充. `call` 指令对应的机器代码的编码室 `e8`, 我们在后面填充 4 字节的 0. 又由于 `call` 指令采用相对寻址(相对 `%rip`), 所以我们用 0 填充, 相当于 call 下一条指令. 在链接时根据 .rela.text 中的内容再加以修正.
+在 .s 文件中, call 指令后直接跟着函数名称, 而在反汇编程序中, call 的目标地址是当前下一条指令的地址. 例如 hello.s 中的 `call exit@plt` 对应反汇编代码中的 `call 2b`. 这是因为由于我们调用的函数是来自外部的函数, 所以 hello.o 和标准库链接 时需要重定位计算地址, 我们现在无法知道最终运行时的地址, 所以用 0 来填充. `call` 指令对应的机器代码的编码室 `e8`, 我们在后面填充 4 字节的 0. 又由于 `call` 指令采用相对寻址(相对 `%rip`), 所以我们用 0 填充, 相当于 call 下一条指令. 在链接时根据 .rela.text 中的内容再加以修正.
 
 ### 4.4.3 全局变量的引用
 
@@ -573,6 +573,117 @@ objdump -d -r hello.o > hello_o.asm
 ### 4.5 本章小节
 
 本章通过使用 readelf 和 objdump 辅助工具查看了可重定向目标文件 hello.o 的 elf 结构和反汇编代码. 通过 objdump 还可以反汇编查看二进制文件的汇编代码和机器代码及其对应关系.
+
+# 第 5 章 链接
+
+## 5.1 链接的概念与作用
+
+链接是将各种代码和数据片段收集并组合成一个单一文件的过程, 这个文件可被加载到内存并执行.
+链接的作用是将不可执行的可重定向目标文件变成可执行的目标文件。
+
+## 5.2 在 Linux 下链接的命令
+
+```zsh
+ld -o hello -dynamic-linker /lib64/ld-linux-x86-64.so.2 /usr/lib/x86_64-linux-gnu/crt1.o /usr/lib/x86_64-linux-gnu/crti.o hello.o /usr/lib/x86_64-linux-gnu/libc.so /usr/lib/x86_64-linux-gnu/crtn.o
+```
+
+## 5.3 可执行目标文件 hello 的格式
+
+readelf 命令格式
+
+```zsh
+readelf --all hello > hello.elf
+```
+
+### 5.3.1 ELF header
+
+和 hello.o 的 ELF header 结构类似, 不过 section 的个数不同.
+
+```text
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x401090
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          14104 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         10
+  Size of section headers:           64 (bytes)
+  Number of section headers:         25
+  Section header string table index: 24
+```
+
+### 5.3.2 Section Headers
+
+```text
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .interp           PROGBITS         0000000000400270  00000270
+       000000000000001c  0000000000000000   A       0     0     1
+  [ 2] .note.ABI-tag     NOTE             000000000040028c  0000028c
+       0000000000000020  0000000000000000   A       0     0     4
+  [ 3] .hash             HASH             00000000004002b0  000002b0
+       0000000000000038  0000000000000004   A       5     0     8
+  [ 4] .gnu.hash         GNU_HASH         00000000004002e8  000002e8
+       000000000000001c  0000000000000000   A       5     0     8
+  [ 5] .dynsym           DYNSYM           0000000000400308  00000308
+       00000000000000d8  0000000000000018   A       6     1     8
+  [ 6] .dynstr           STRTAB           00000000004003e0  000003e0
+       000000000000005c  0000000000000000   A       0     0     1
+  [ 7] .gnu.version      VERSYM           000000000040043c  0000043c
+       0000000000000012  0000000000000002   A       5     0     2
+  [ 8] .gnu.version_r    VERNEED          0000000000400450  00000450
+       0000000000000020  0000000000000000   A       6     1     8
+  [ 9] .rela.dyn         RELA             0000000000400470  00000470
+       0000000000000030  0000000000000018   A       5     0     8
+  [10] .rela.plt         RELA             00000000004004a0  000004a0
+       0000000000000090  0000000000000018  AI       5    19     8
+  [11] .init             PROGBITS         0000000000401000  00001000
+       0000000000000017  0000000000000000  AX       0     0     4
+  [12] .plt              PROGBITS         0000000000401020  00001020
+       0000000000000070  0000000000000010  AX       0     0     16
+  [13] .text             PROGBITS         0000000000401090  00001090
+       0000000000000101  0000000000000000  AX       0     0     16
+  [14] .fini             PROGBITS         0000000000401194  00001194
+       0000000000000009  0000000000000000  AX       0     0     4
+  [15] .rodata           PROGBITS         0000000000402000  00002000
+       000000000000003d  0000000000000000   A       0     0     8
+  [16] .eh_frame         PROGBITS         0000000000402040  00002040
+       0000000000000104  0000000000000000   A       0     0     8
+  [17] .dynamic          DYNAMIC          0000000000403e50  00002e50
+       00000000000001a0  0000000000000010  WA       6     0     8
+  [18] .got              PROGBITS         0000000000403ff0  00002ff0
+       0000000000000010  0000000000000008  WA       0     0     8
+  [19] .got.plt          PROGBITS         0000000000404000  00003000
+       0000000000000048  0000000000000008  WA       0     0     8
+  [20] .data             PROGBITS         0000000000404048  00003048
+       0000000000000004  0000000000000000  WA       0     0     1
+  [21] .comment          PROGBITS         0000000000000000  0000304c
+       0000000000000012  0000000000000001  MS       0     0     1
+  [22] .symtab           SYMTAB           0000000000000000  00003060
+       0000000000000498  0000000000000018          23    28     8
+  [23] .strtab           STRTAB           0000000000000000  000034f8
+       0000000000000158  0000000000000000           0     0     1
+  [24] .shstrtab         STRTAB           0000000000000000  00003650
+       00000000000000c5  0000000000000000           0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  l (large), p (processor specific)
+```
 
 # 第 6 章 hello 进程管理
 
@@ -682,7 +793,7 @@ kill 命令向指定进程发送指定信号, 进程接收到信号后会做出�
 
 逻辑地址: 逻辑地址是指由程序产生的与段相关的偏移地址部分. hello.o 里面的相对偏移地址就是逻辑地址.
 
-线性地址: 地址空间是一个非负整数地址的有序集合, 如果地址空间中的整数是连续的， 那么我们说它是一个线性地址空间. 就是 hello 里面的虚拟内存地址.
+线性地址: 地址空间是一个非负整数地址的有序集合, 如果地址空间中的整数是连续的, 那么我们说它是一个线性地址空间. 就是 hello 里面的虚拟内存地址.
 
 虚拟地址: CPU 通过生成一个虚拟地址. 就是 hello 里面的虚拟内存地址. CSAPP 上讲的虚拟地址就是线性地址.
 
@@ -708,13 +819,13 @@ kill 命令向指定进程发送指定信号, 进程接收到信号后会做出�
 
 ![](./pt.bmp)
 
-页表就是一个页表条目的数组. 虚拟地址空间中的每个页在页表中一个固定偏移量出都有一个 PTE。 每个 PTE 由一个有效位和一个 n 位地址字段组成. 有效位表面该虚拟页是否缓存在 DRAM 中, 如果设置了有效位, 那么地址字段就表示 DRAM 中相应的物理页的起始位置, 这个物理页中缓存了该虚拟页, 如果没有有效位, 若是空地址就表明未分配, 否则就执行该虚拟页在磁盘上的起始位置.
+页表就是一个页表条目的数组. 虚拟地址空间中的每个页在页表中一个固定偏移量出都有一个 PTE. 每个 PTE 由一个有效位和一个 n 位地址字段组成. 有效位表面该虚拟页是否缓存在 DRAM 中, 如果设置了有效位, 那么地址字段就表示 DRAM 中相应的物理页的起始位置, 这个物理页中缓存了该虚拟页, 如果没有有效位, 若是空地址就表明未分配, 否则就执行该虚拟页在磁盘上的起始位置.
 
 ![](./vaddr.bmp)
 
 ![](./paddr.bmp)
 
-其中 VPO = PPO, 也就是一个引用相对于虚拟页的偏移量和相对于物理页的偏移量相等. 由虚拟地址变为物理地址需要 MMU 来进行翻译. 当有效位为 1 时, 我们直接在页表中找到对应的物理页号 PPN，, PPN + VPO 就是 PPN + PPO 也就是物理地址了. 当有效位为 0 时, 说明内存中不存在当前页, 此时 MMU 会选择一个内存中的页为牺牲页, 用当前页代替这个牺牲页, 更改页表信息, 完成这次读取.
+其中 VPO = PPO, 也就是一个引用相对于虚拟页的偏移量和相对于物理页的偏移量相等. 由虚拟地址变为物理地址需要 MMU 来进行翻译. 当有效位为 1 时, 我们直接在页表中找到对应的物理页号 PPN, , PPN + VPO 就是 PPN + PPO 也就是物理地址了. 当有效位为 0 时, 说明内存中不存在当前页, 此时 MMU 会选择一个内存中的页为牺牲页, 用当前页代替这个牺牲页, 更改页表信息, 完成这次读取.
 
 ## 7.4 TLB 与四级页表支持下的 VA 到 PA 的变换
 
@@ -775,3 +886,287 @@ execve 函数加载并运行可执行文件 hello. 且带参数列表 argv 和�
 分配器将堆视为一组不同大小的块 (block) 的集合来维护. 每个块就是一个连续的虚拟内存片 (chunk), 要么是已分配的, 要么是空闲的. 已分配的块显式地保留为供应用程序使用. 空闲块可用来分配. 空闲块保持空闲, 直到它显式地被应用所分配. 一个已分配的块保持已分配状态, 直到它被释放, 这种释放要么是应用程序显式执行的, 要么是内存分配器自身隐式执行的.
 
 ## 7.9.2 动态内存管理的基本方法与策略
+
+### 7.2.9.1 隐式空闲链表
+
+首先, 这里用简单的隐式空闲链表来组织堆, 它的空闲块通过头部中的大小字段隐含地连接着, 可以通过遍历堆中所有的块来间接地遍历整个空闲块的集合. 并且, 我们需要一个某种特殊标记的结束块. 分配器的合并方法是搜索整个链表, 记住前面块的位置, 直到我们到达当前块. 使用隐式空闲链表意味着每次 free 需要的时间开销与堆的大小成线性关系.
+Knuth 提出了一种聪明而通用的技术, 叫做边界标记, 允许在常数时间内进行对前面块的合并. 他通过在每个块的结尾处添加一个脚部, 其中脚部就是头部的一个副本. 如果每个块包括这样一个脚部, 那么分配器就可以通过检查它的脚部, 判断前面一个块的起始位置和状态, 这个脚部总是在距当前块开始位置一个字的距离.
+考虑当分配器释放当前块时所有可能存在的情况: 前空后空, 前空后不空, 前不空后空, 前不空后不空.
+
+![](./list1.bmp)
+
+### 7.2.9.2 显式空闲链表
+
+使用双向链表而不是隐式空闲链表, 使首次适配的分配时间从块总数的线性时间减少到了空闲快数量的线性时间. 不过, 释放一个块的时间可以使线性, 也可能是个常数, 这取决于我们选择的排序策略:
+
+1. 使用先进后出的顺序维护链表, 将新释放的块放置在链表的最开始处. 使用 LIFO
+   的顺序和首次适配的放置策略, 分配器会最先检查最近使用的块. 在这种情况下，
+   释放一个快可以在常数时间内完成. 如果使用边界标记, 合并也可以在常数时间
+   内完成.
+2. 按照地址顺序来维护链表, 其中链表中每个块的地址都小于它后继的地址. 在
+   这种情况下, 释放一个块血药线性时间的搜索来定位合适的前驱. 平衡点在于，
+   按照地址排序的首次适配比 LIFO 排序的首次适配由更高的内存利用率, 接近最佳
+   适配的利用率.
+
+![](./list2.bmp)
+
+## 7.10 本章小结
+
+这一章描述了 hello 的存储的管理机制和异常处理机制, 让我们了解了一个系统内
+核如何为进程 hello 分配资源, 空间, 堆栈等等. 虚拟内存的引入, 让资源管理与
+分配变得简单很多. 在此基础上, 还增加了 TLB, 多级页表等优化方式.
+
+# 第 8 章 hello 的 IO 管理
+
+## 8.1 Linux 的 IO 设备管理方法
+
+所有的 I/O 设备都被模型化为文件, 内核也被映射为文件, 而所有的输入和输出都被当做对相应文件的读和写来执行, 这种将设备优雅地映射为文件的方式, 允许 Linux 内核引出一个简单, 低级的应用接口称为 Unix I/O, 这使得输入和输出都能以一种统一且一致的方式的来执行.
+
+## 8.2 简述 Unix IO 接口及其函数
+
+### 8.2.1 打开文件
+
+```c
+int open(char *filename, int flags, mode_t mode);
+```
+
+返回一个小的非负整数, 即文件描述符. 如果出错, 返回 -1.
+
+### 8.2.2 改变当前文件位置
+
+```c
+off_t lseek(int filedes, off_t offset, int whence);
+```
+
+返回新的偏移量. 如果失败, 返回 -1. 偏移量从文件开头偏移的字节数. 对于一个打开的文件表, 操作系统内核维护这个文件位置.
+
+### 8.2.3 读写文件
+
+```c
+ssize_t read(int fd, void *buf, size_t n);
+```
+
+返回成功读取的字节数. 如果读取到 EOF 返回 0, 出错为 -1.
+
+```c
+ssize_t write(int fd, const void *buf, size_t n);
+```
+
+返回成功写入的字节数, 如果出错返回 -1.
+
+### 8.2.4 关闭文件
+
+```c
+int close(int fd);
+```
+
+成功返回 0, 出错返回 -1.
+
+内核释放文件打开时创建的数据结构, 并恢复描述符到描述符池中, 进程通过调用 `close` 函数关闭一个打开的文件. 关闭一个已关闭的描述符会出错.
+
+### 8.3 printf 的实现分析
+
+以下是 Linux x86 boot 中的一种 `printf` 实现:
+
+```c
+int vsprintf(char *buf, const char *fmt, va_list args)
+{
+	int len;
+	unsigned long num;
+	int i, base;
+	char *str;
+	const char *s;
+	int flags;		/* flags to number() */
+	int field_width;	/* width of output field */
+	int precision;		/* min. # of digits for integers; max
+				   number of chars for from string */
+	int qualifier;		/* 'h', 'l', or 'L' for integer fields */
+	for (str = buf; *fmt; ++fmt) {
+		if (*fmt != '%') {
+			*str++ = *fmt;
+			continue;
+		}
+		/* process flags */
+		flags = 0;
+	      repeat:
+		++fmt;		/* this also skips first '%' */
+		switch (*fmt) {
+		case '-':
+			flags |= LEFT;
+			goto repeat;
+		case '+':
+			flags |= PLUS;
+			goto repeat;
+		case ' ':
+			flags |= SPACE;
+			goto repeat;
+		case '#':
+			flags |= SPECIAL;
+			goto repeat;
+		case '0':
+			flags |= ZEROPAD;
+			goto repeat;
+		}
+		/* get field width */
+		field_width = -1;
+		if (isdigit(*fmt))
+			field_width = skip_atoi(&fmt);
+		else if (*fmt == '*') {
+			++fmt;
+			/* it's the next argument */
+			field_width = va_arg(args, int);
+			if (field_width < 0) {
+				field_width = -field_width;
+				flags |= LEFT;
+			}
+		}
+		/* get the precision */
+		precision = -1;
+		if (*fmt == '.') {
+			++fmt;
+			if (isdigit(*fmt))
+				precision = skip_atoi(&fmt);
+			else if (*fmt == '*') {
+				++fmt;
+				/* it's the next argument */
+				precision = va_arg(args, int);
+			}
+			if (precision < 0)
+				precision = 0;
+		}
+		/* get the conversion qualifier */
+		qualifier = -1;
+		if (*fmt == 'h' || *fmt == 'l' || *fmt == 'L') {
+			qualifier = *fmt;
+			++fmt;
+		}
+		/* default base */
+		base = 10;
+		switch (*fmt) {
+		case 'c':
+			if (!(flags & LEFT))
+				while (--field_width > 0)
+					*str++ = ' ';
+			*str++ = (unsigned char)va_arg(args, int);
+			while (--field_width > 0)
+				*str++ = ' ';
+			continue;
+		case 's':
+			s = va_arg(args, char *);
+			len = strnlen(s, precision);
+			if (!(flags & LEFT))
+				while (len < field_width--)
+					*str++ = ' ';
+			for (i = 0; i < len; ++i)
+				*str++ = *s++;
+			while (len < field_width--)
+				*str++ = ' ';
+			continue;
+		case 'p':
+			if (field_width == -1) {
+				field_width = 2 * sizeof(void *);
+				flags |= ZEROPAD;
+			}
+			str = number(str,
+				     (unsigned long)va_arg(args, void *), 16,
+				     field_width, precision, flags);
+			continue;
+		case 'n':
+			if (qualifier == 'l') {
+				long *ip = va_arg(args, long *);
+				*ip = (str - buf);
+			} else {
+				int *ip = va_arg(args, int *);
+				*ip = (str - buf);
+			}
+			continue;
+		case '%':
+			*str++ = '%';
+			continue;
+			/* integer number formats - set up the flags and "break" */
+		case 'o':
+			base = 8;
+			break;
+		case 'x':
+			flags |= SMALL;
+		case 'X':
+			base = 16;
+			break;
+		case 'd':
+		case 'i':
+			flags |= SIGN;
+		case 'u':
+			break;
+		default:
+			*str++ = '%';
+			if (*fmt)
+				*str++ = *fmt;
+			else
+				--fmt;
+			continue;
+		}
+		if (qualifier == 'l')
+			num = va_arg(args, unsigned long);
+		else if (qualifier == 'h') {
+			num = (unsigned short)va_arg(args, int);
+			if (flags & SIGN)
+				num = (short)num;
+		} else if (flags & SIGN)
+			num = va_arg(args, int);
+		else
+			num = va_arg(args, unsigned int);
+		str = number(str, num, base, field_width, precision, flags);
+	}
+	*str = '\0';
+	return str - buf;
+}
+int sprintf(char *buf, const char *fmt, ...)
+{
+	va_list args;
+	int i;
+	va_start(args, fmt);
+	i = vsprintf(buf, fmt, args);
+	va_end(args);
+	return i;
+}
+int printf(const char *fmt, ...)
+{
+	char printf_buf[1024];
+	va_list args;
+	int printed;
+	va_start(args, fmt);
+	printed = vsprintf(printf_buf, fmt, args);
+	va_end(args);
+	puts(printf_buf);
+	return printed;
+}
+```
+
+`printf` 在栈上创建了一个 1 KB 的缓冲区. 先调用 `vsprintf` 格式化字符串, 写入缓冲区中. 随后调用 `puts` 函数, 将缓冲区的内容输出到屏幕上.
+
+在 `vsprintf` 中, 格式字符串经过解析, 将对应的参数格式化成指定的格式, 写入输出缓冲区中.
+
+## 8.4 getchar 的实现分析
+
+异步异常-键盘中断的处理: 键盘中断处理子程序. 接受按键扫描码转成 ASCII 码, 保存到系统的键盘缓冲区. `getchar` 等调用 `read` 系统函数, 通过系统调用读取按键 ASCII 码, 直到接收到回车键才返回.
+
+## 8.5 本章小结
+
+本章节讲述了一下 linux 的 I/O 设备管理机制, 简单分析了 `printf` 函数和 `getchar` 函
+数原理. 了解 Unix I/O 将帮助我们更深刻地理解其他的系统概念.
+
+# 结论
+
+我们来总结一下 hello 的一生.
+
+1. 编写代码, 通过 I/O 设备写入到磁盘中的 hello.c 中.
+2. 预处理, 将 hello.c 经过预处理器 cpp 预处理为 hello.i, 依然是一个 c 语言程序.
+3. 编译, 将 hello.i 经过编译器 ccl 翻译成 hello.s, 内容为汇编语言.
+4. 汇编, 将 hello.s 经过汇编器 as 汇编成 hello.o, 现在的 hello 是一个二进制文件了, 不过还能执行.
+5. 链接, 将 hello.s 经过汇编器 ld 链接成 hello, 现在 hello 是一个可执行二进制文件了.
+6. shell 通过 fork 创建子进程, 子进程是父进程的副本.
+7. 子进程 execve 加载 hello, 使 hello 加载到内存, 改变 pc 的值, 堆栈的状态等等.
+8. 磁盘读取, 虚拟内存映射, CPU 执行指令, 内核调度, 缓存加载数据, 信号处理, Unix I/O 输入与输出.
+9. hello 进程结束, 父进程 shell 回收之.
+
+一个简单的 hello 程序, 大概是我们接触 C 语言第一个写的程序了, 它却蕴含着如此深刻的知识. 通过理解 "hello 的一生", 我也完成了一次系统的知识梳理, 构造了一个成体系的计算机知识结构, 并且对这样一系列的命令行操作更加熟悉了.
