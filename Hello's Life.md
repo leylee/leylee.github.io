@@ -754,6 +754,7 @@ sleep()方法是线程类 (Thread) 的静态方法, 让调用的线程进入指�
 ### 6.6.2 Ctrl + C
 
 ![](./ctrlc.bmp)
+
 键入 Ctrl + C 向进程发送了一个 SIGINT 信号, 让进程直接结束.
 
 ### 6.6.3 Ctrl + Z
