@@ -25,6 +25,8 @@ CPU: Intel i7-8550U (4) @ 1.991GHz
 软件/开发工具版本:
 
 - gcc (GCC) 11.1.0
+- readelf 2.31.1
+- objdump 2.31.1
 
 ## 1.3 中间结果
 
