@@ -10,6 +10,10 @@ HITSchedule 使用 Java 语言开发, 使用 gradle 构建. 核心源代在 app/
 
 `SRCROOT` 中, 包含一个 Application.java 和若干个模块: `ui`, `dialog`, `adapter`, `util`, `view`, `database`.
 
+## 构建工具
+
+项目使用 gradle 作为构建工具, 依赖了一些外部包, 其中最重要的是 `com.github.zfman.TimetableView`, 是课表管理与显示的核心.
+
 ## Adapter 模式
 
 Adapter 模式是软件开发中常用的模式之一. Adapter 通过适配器的转换功能, 插入在两个类之间, 屏蔽两个类接口的差异, 对调用者使用的接口进行抽象, 以屏蔽底层实现的差异. 比如, 在 `SubjectAdapter` 中, 抽象出了 `getCount`, `getItem`, `getItemId`, `getView` 等方法, 为上层应用提供统一的接口. 内部则是将这些操作与内部的 `scheduleList` 等底层类绑定, 对这些对象的方法进行包装.
